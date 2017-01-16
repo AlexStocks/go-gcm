@@ -138,6 +138,45 @@ func TestHttpClientSend(t *testing.T) {
 	assertEqual(t, c.getRetryAfter(), expectedRetryAfter)
 }
 
+// Test send for http client
+func TestHttpClientSendIkurentoMessage(t *testing.T) {
+	expectedRetryAfter := "10"
+	var authHeader string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "application/json")
+		w.Header().Set(http.CanonicalHeaderKey("Retry-After"), expectedRetryAfter)
+		w.WriteHeader(200)
+		fmt.Fprintln(w, expectedResp)
+	}))
+	defer server.Close()
+
+	transport := &http.Transport{
+		Proxy: func(req *http.Request) (*url.URL, error) {
+			authHeader = req.Header.Get(http.CanonicalHeaderKey("Authorization"))
+			return url.Parse(server.URL)
+		},
+	}
+	httpClient := &http.Client{Transport: transport}
+	c := &httpGcmClient{server.URL, httpClient, "0"}
+	singleTargetMessage = &HttpMessage{
+		Message: Message{Title: "gcm-title", Content: "gcm-content"},
+		OpenURL: string("gcm-openurl"),
+		Extra:   Extra{Type: "gcm-type", ID: "gcm-id"},
+	}
+	fmt.Println("fuck")
+	response, error := c.send("apiKey", *singleTargetMessage)
+	expectedAuthHeader := "key=apiKey"
+	expResp := &HttpResponse{}
+	err := json.Unmarshal([]byte(expectedResp), &expResp)
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	}
+	assertEqual(t, authHeader, expectedAuthHeader)
+	assertEqual(t, error, nil)
+	assertDeepEqual(t, response, expResp)
+	assertEqual(t, c.getRetryAfter(), expectedRetryAfter)
+}
+
 // test sending a GCM message through the HTTP connection server (includes backoff)
 func TestSendHttp(t *testing.T) {
 	c := &stubHttpClient{}
