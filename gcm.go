@@ -87,19 +87,6 @@ type HttpMessage struct {
 	DryRun                bool          `json:"dry_run,omitempty"`
 	Data                  Data          `json:"data,omitempty"`
 	Notification          *Notification `json:"notification,omitempty"`
-	Message               Message       `json:"message,omitempty"`
-	OpenURL               string        `json:"open_url,omitempty"`
-	Extra                 Extra         `json:"extra,omitempty"`
-}
-
-type Message struct {
-	Title   string `json:"title,omitempty"`
-	Content string `json:"content,omitempty"`
-}
-
-type Extra struct {
-	Type string `json:"type,omitempty"`
-	ID   string `json:"id,omitempty"`
 }
 
 // A GCM Xmpp message.
@@ -125,7 +112,7 @@ type HttpResponse struct {
 	Failure      uint     `json:"failure,omitempty"`
 	CanonicalIds uint     `json:"canonical_ids,omitempty"`
 	Results      []Result `json:"results,omitempty"`
-	MessageId    int      `json:"message_id,omitempty"`
+	MessageId    int     `json:"message_id,omitempty"`
 	Error        string   `json:"error,omitempty"`
 }
 
